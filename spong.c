@@ -9,17 +9,15 @@ const SDL_Rect PADDLE_TWO = { 610, 180, 10, 120 };
 
 int main (int argc, char *argv[]) {
 
-
 	SDL_Surface *screen = NULL;
 	SDL_Event event;
 
-	/* initialize required SDL subsystems (TODO: replace EVERYTHING with the specific list) */
+	/* initialize required SDL subsystems (TODO: replace 'EVERYTHING' with the specific modules) */
 	if(SDL_Init(SDL_INIT_EVERYTHING) == -1) { //error on init
 		fprintf(stderr,"Unable to initialize SDL: %s\n", SDL_GetError());
 		exit(-1);
 	}
-	printf("SDL initialize successful\n");
-	atexit(SDL_Quit); //shut down SDL on exit
+	atexit(SDL_Quit); //shut down SDL on exit or returning from main
 
 	/* set the video mode. prefer 8-bit, but accept others */
 	if(!(screen = SDL_SetVideoMode( 640, 480, 8, SDL_SWSURFACE | SDL_ANYFORMAT ))) {
@@ -28,51 +26,50 @@ int main (int argc, char *argv[]) {
 	}
 	printf("Set 640x480 at %d bits-per-pixel mode\n", screen->format->BitsPerPixel);
 
-	/* make a paddle and draw it */
+
+
+	/* make the paddles */
 	struct Paddle *pad1 = MakePaddle( PADDLE_ONE, screen->format, 255, 255, 255 );
 	struct Paddle *pad2 = MakePaddle( PADDLE_TWO, screen->format, 255, 255, 255 );
+	/* draw the paddles */
 	DrawPaddle( pad1, screen );
 	DrawPaddle( pad2, screen );
 
-#if 0
-	/* create and initiate timer flips */
-	Uint32 Redraw( Uint32 interval, void *param ) {
-	return interval;
+#if 1
+	/* create and initiate timer redraw */
+	Uint32 Redraw_callback( Uint32 interval, void *param ) {
+		SDL_Event event;
+		event.type = SDL_USEREVENT;
+		event.user.code = 1; // for now, 1 is the timer redraw event code
+		event.user.data1 = NULL;
+		event.user.data2 = NULL;
+		if( SDL_PushEvent( &event ) ) {
+			fprintf(stderr,"Failure to push redraw event to event queue\n");
+		}
+		return interval;
 	}	
-	SDL_TimerID redraw_timer = SDL_AddTimer( 100, Redraw, NULL );
+	SDL_TimerID redraw = SDL_AddTimer( 1000, Redraw_callback, NULL );
 #endif
 
 	/* refresh screen to show changes to it */
 	SDL_Flip( screen );
 
-	/* wait for window x before closing (temporary, needs to be replaced with correct procedure) */
+	/* get next event on the queue, block if no events */
 	while( SDL_WaitEvent( &event ) ) {
-		if( event.type == SDL_QUIT ) {
+		if( event.type == SDL_USEREVENT ) {
+			if( event.user.code == 1 ) {
+				printf("redraw the screen\n");
+			}
+		} else if( event.type == SDL_QUIT ) {
 			break;
 		}
-		if( event.type == SDL_KEYDOWN ) {
-			switch(event.key.keysym.sym) {
-				case SDLK_UP:
-					if(pad1->rect.y > 10) pad1->rect.y -= 10;
-					break;
-				case SDLK_DOWN:
-					if(pad1->rect.y < 350) pad1->rect.y += 10;
-					break;
-				default:
-					printf("this should never happen\n");
-			}
-			DrawPaddle( pad1, screen );
-			SDL_Flip( screen );
-		}
 	}
+
+
 
 	/* clean up paddles */
 	DeletePaddle(pad1);
 	DeletePaddle(pad2);
-
-	/* shutdown all SDL subsytems */
-	SDL_Quit();
-	printf("SDL shutdown successful\n");
 
 	return 0;
 }
