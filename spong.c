@@ -3,7 +3,8 @@
 #include "SDL.h"
 #include "paddle.h"
 
-/* Constants */
+/* Globals */
+unsigned redraw_interval = 1000;
 const SDL_Rect PADDLE_ONE = { 20, 180, 10, 120 };
 const SDL_Rect PADDLE_TWO = { 610, 180, 10, 120 };
 
@@ -28,10 +29,14 @@ int main (int argc, char *argv[]) {
 
 
 
+	/* make the backgroud */
+	SDL_Rect background_rect = { 0, 0, 640, 480 };
+	struct Paddle *background = MakePaddle( background_rect, screen->format, 0, 0, 0 );
 	/* make the paddles */
 	struct Paddle *pad1 = MakePaddle( PADDLE_ONE, screen->format, 255, 255, 255 );
 	struct Paddle *pad2 = MakePaddle( PADDLE_TWO, screen->format, 255, 255, 255 );
 	/* draw the paddles */
+	DrawPaddle( background, screen );
 	DrawPaddle( pad1, screen );
 	DrawPaddle( pad2, screen );
 
@@ -46,9 +51,9 @@ int main (int argc, char *argv[]) {
 		if( SDL_PushEvent( &event ) ) {
 			fprintf(stderr,"Failure to push redraw event to event queue\n");
 		}
-		return interval;
+		return redraw_interval;
 	}	
-	SDL_TimerID redraw = SDL_AddTimer( 1000, Redraw_callback, NULL );
+	SDL_TimerID redraw = SDL_AddTimer( redraw_interval, Redraw_callback, NULL );
 #endif
 
 	/* refresh screen to show changes to it */
