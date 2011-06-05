@@ -5,6 +5,7 @@
 
 static SDL_Surface *Spong_Screen;
 
+/* where can I put this? */
 Uint32 Spong_PushRenderEvent( Uint32 interval, void *param )
 {
 		SDL_Event event;
@@ -19,6 +20,7 @@ Uint32 Spong_PushRenderEvent( Uint32 interval, void *param )
 		return interval;
 }
 
+/* this will be the root of the spong program */
 void Spong_EventLoop()
 {
 	SDL_Event event;
@@ -38,6 +40,7 @@ void Spong_EventLoop()
 				}
 				break;
 			case SDL_QUIT:
+				fprintf(stderr,"SDL_QUIT event\n");
 				return;
 			default:
 				fprintf(stderr,"unrecognized SDL event\n");
@@ -75,5 +78,4 @@ void Spong_Init()
 void Spong_CleanUp()
 {
 }
-
 
