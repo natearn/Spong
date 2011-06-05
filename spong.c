@@ -20,7 +20,43 @@ Uint32 Spong_PushRenderEvent( Uint32 interval, void *param )
 		return interval;
 }
 
-/* this will be the root of the spong program */
+void RotateColour()
+{
+	static unsigned rotate = 0;
+	Uint32 colour;
+	switch(rotate++ % 8)
+	{
+		case 0:
+			colour = SDL_MapRGB( Spong_Screen->format , 0 , 0 , 0 );
+			break;
+		case 1:
+			colour = SDL_MapRGB( Spong_Screen->format , 255 , 255 , 0 );
+			break;
+		case 2:
+			colour = SDL_MapRGB( Spong_Screen->format , 255 , 0 , 255 );
+			break;
+		case 3:
+			colour = SDL_MapRGB( Spong_Screen->format , 0 , 255 , 255 );
+			break;
+		case 4:
+			colour = SDL_MapRGB( Spong_Screen->format , 0 , 0 , 255 );
+			break;
+		case 5:
+			colour = SDL_MapRGB( Spong_Screen->format , 0 , 255 , 0 );
+			break;
+		case 6:
+			colour = SDL_MapRGB( Spong_Screen->format , 255 , 0 , 0 );
+			break;
+		case 7:
+			colour = SDL_MapRGB( Spong_Screen->format , 255 , 255 , 255 );
+			break;
+	}
+	if( SDL_FillRect( Spong_Screen , NULL , colour ) ) {
+		fprintf(stderr,"RotateColour failed\n");
+	}
+}
+
+/* this will drive the Spong program */
 void Spong_EventLoop()
 {
 	SDL_Event event;
@@ -28,12 +64,15 @@ void Spong_EventLoop()
 	{
 		switch( event.type )
 		{
+			case SDL_KEYDOWN:
+				RotateColour();
+				fprintf(stderr,"SDL_KEYDOWN event\n");
+				break;
 			case SDL_USEREVENT:
 				switch( event.user.code )
 				{
 					case SPONG_RENDER_EVENT:
 						SDL_Flip( Spong_Screen );
-						fprintf(stderr,"render the screen\n");
 						break;
 					default:
 						fprintf(stderr,"unrecognized user event\n");
@@ -42,8 +81,6 @@ void Spong_EventLoop()
 			case SDL_QUIT:
 				fprintf(stderr,"SDL_QUIT event\n");
 				return;
-			default:
-				fprintf(stderr,"unrecognized SDL event\n");
 		}
 	}
 }
@@ -70,6 +107,8 @@ void Spong_Init()
 		exit(1);
 	}
 	printf("Set 640x480 at %d bits-per-pixel mode\n", Spong_Screen->format->BitsPerPixel);
+
+	/* create a background */
 
 	/* add timer render event */
 	timerId = SDL_AddTimer( 1000 / SPONG_FRAME_RATE , Spong_PushRenderEvent , NULL );
