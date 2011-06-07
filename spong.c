@@ -2,8 +2,10 @@
 #include <stdlib.h>
 #include <SDL.h>
 #include "spong.h"
+#include "paddle.h"
 
-static SDL_Surface *Spong_Screen;
+static SDL_Surface *Spong_Screen=NULL;
+static Spong_Paddle *paddle1=NULL, *paddle2=NULL;
 
 /* where can I put this? */
 Uint32 Spong_PushRenderEvent( Uint32 interval, void *param )
@@ -68,6 +70,8 @@ void Spong_EventLoop()
 				RotateColour();
 				fprintf(stderr,"SDL_KEYDOWN event\n");
 				break;
+			case SDL_KEYUP:
+				break;
 			case SDL_USEREVENT:
 				switch( event.user.code )
 				{
@@ -102,13 +106,17 @@ void Spong_Init()
 	}
 
 	/* set the video mode. prefer 8-bit, but accept others */
-	if(!(Spong_Screen = SDL_SetVideoMode( 640, 480, 8, SDL_SWSURFACE | SDL_ANYFORMAT ))) {
+	if(!(Spong_Screen = SDL_SetVideoMode( 640, 480, 8, SDL_HWSURFACE | SDL_DOUBLEBUF | SDL_ANYFORMAT ))) {
 		fprintf(stderr,"Unable to set 640x480x8 video mode: %s\n", SDL_GetError());
 		exit(1);
 	}
 	printf("Set 640x480 at %d bits-per-pixel mode\n", Spong_Screen->format->BitsPerPixel);
 
 	/* create a background */
+	
+	/* create paddles */
+	paddle1 = Spong_MakePaddle( 100 , 20 , 64 , 48 , 0 , 0 , SDL_HWSURFACE , Spong_Screen->format->BitsPerPixel );
+	paddle2 = Spong_MakePaddle( 100 , 20 , 640-64-20 , 48 , 0 , 0 , SDL_HWSURFACE , Spong_Screen->format->BitsPerPixel );
 
 	/* add timer render event */
 	timerId = SDL_AddTimer( 1000 / SPONG_FRAME_RATE , Spong_PushRenderEvent , NULL );
