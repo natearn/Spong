@@ -4,7 +4,7 @@
 #include "spong.h"
 #include "paddle.h"
 
-static SDL_Surface *Spong_Screen=NULL;
+static SDL_Surface *Spong_Screen=NULL, *background=NULL;
 static Spong_Paddle *paddle1=NULL, *paddle2=NULL;
 
 /* where can I put this? */
@@ -22,42 +22,6 @@ Uint32 Spong_PushRenderEvent( Uint32 interval, void *param )
 		return interval;
 }
 
-void RotateColour()
-{
-	static unsigned rotate = 0;
-	Uint32 colour;
-	switch(rotate++ % 8)
-	{
-		case 0:
-			colour = SDL_MapRGB( Spong_Screen->format , 0 , 0 , 0 );
-			break;
-		case 1:
-			colour = SDL_MapRGB( Spong_Screen->format , 255 , 255 , 0 );
-			break;
-		case 2:
-			colour = SDL_MapRGB( Spong_Screen->format , 255 , 0 , 255 );
-			break;
-		case 3:
-			colour = SDL_MapRGB( Spong_Screen->format , 0 , 255 , 255 );
-			break;
-		case 4:
-			colour = SDL_MapRGB( Spong_Screen->format , 0 , 0 , 255 );
-			break;
-		case 5:
-			colour = SDL_MapRGB( Spong_Screen->format , 0 , 255 , 0 );
-			break;
-		case 6:
-			colour = SDL_MapRGB( Spong_Screen->format , 255 , 0 , 0 );
-			break;
-		case 7:
-			colour = SDL_MapRGB( Spong_Screen->format , 255 , 255 , 255 );
-			break;
-	}
-	if( SDL_FillRect( Spong_Screen , NULL , colour ) ) {
-		fprintf(stderr,"RotateColour failed\n");
-	}
-}
-
 /* this will drive the Spong program */
 void Spong_EventLoop()
 {
@@ -67,16 +31,28 @@ void Spong_EventLoop()
 		switch( event.type )
 		{
 			case SDL_KEYDOWN:
-				RotateColour();
 				fprintf(stderr,"SDL_KEYDOWN event\n");
+				if( event.key.keysym.sym == SDLK_UP ) {
+					paddle1->yMotion += 1;
+				}
+				if( event.key.keysym.sym == SDLK_DOWN ) {
+					paddle1->yMotion -= 1;
+				}
 				break;
 			case SDL_KEYUP:
+				if( event.key.keysym.sym == SDLK_UP ) {
+					paddle1->yMotion -= 1;
+				}
+				if( event.key.keysym.sym == SDLK_DOWN ) {
+					paddle1->yMotion += 1;
+				}
 				break;
 			case SDL_USEREVENT:
 				switch( event.user.code )
 				{
 					case SPONG_RENDER_EVENT:
 						SDL_Flip( Spong_Screen );
+						fprintf(stderr,"%d\n",paddle1->yMotion);
 						break;
 					default:
 						fprintf(stderr,"unrecognized user event\n");
@@ -113,6 +89,9 @@ void Spong_Init()
 	printf("Set 640x480 at %d bits-per-pixel mode\n", Spong_Screen->format->BitsPerPixel);
 
 	/* create a background */
+	background = SDL_CreateRGBSurface( SDL_HWSURFACE, 640, 480, Spong_Screen->format->BitsPerPixel, 0, 0, 0, 0 );
+	/* explicitly set the background to black */
+	SDL_FillRect( background, NULL, SDL_MapRGB( Spong_Screen->format, 0, 0, 0 ) );
 	
 	/* create paddles */
 	paddle1 = Spong_MakePaddle( 100 , 20 , 64 , 48 , 0 , 0 , SDL_HWSURFACE , Spong_Screen->format->BitsPerPixel );
