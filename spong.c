@@ -45,7 +45,7 @@ void Spong_Init( SDL_Surface* screen, SDL_Surface* paddle )
 	printf("Set 640x480 at %d bits-per-pixel mode\n", screen->format->BitsPerPixel);
 
 	/* add timer render event */
-	timerId = SDL_AddTimer( (Uint32)(1000 / SPONG_FRAME_RATE) , Spong_PushRenderEvent , (void*)NULL );
+	timerId = SDL_AddTimer( 1000 / SPONG_FRAME_RATE , Spong_PushRenderEvent , NULL );
 }
 
 /* not used */
