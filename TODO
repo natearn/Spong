@@ -1,10 +1,10 @@
 
-move the initialization code for display objects into a function
-
-create a function which iterates over an array of display objects and update/blits them
-
 make another paddle
 
 make a ball
 
 add collision detection
+
+add arguments to Spong_Run(), convert the appropriate macros to parameters
+
+determine if display object surfaces should be initialized with the rest of the struct, or set later

@@ -4,7 +4,10 @@
 #include "spong.h"
 #include <assert.h>
 
-#define SCREEN_HEIGHT 480
+#define SPONG_RENDER_EVENT 1
+
+#define PADDLE_WIDTH 20
+
 
 typedef struct
 {
@@ -13,6 +16,15 @@ typedef struct
 	int motion;
 	Uint32 reftime;
 } DisplayObject;
+
+void Spong_InitObject( DisplayObject* obj, int x, int y, int m )
+{
+	obj->surface = NULL;
+	obj->position.y = y;
+	obj->position.x = x;
+	obj->motion = m;
+	obj->reftime = SDL_GetTicks();
+}
 
 void Spong_UpdatePosition( DisplayObject* obj )
 {
@@ -40,6 +52,23 @@ void Spong_UpdatePosition( DisplayObject* obj )
 	obj->reftime = curtime;
 }
 
+int Spong_DrawObjects( DisplayObject* objects[], unsigned num, SDL_Surface* screen )
+{
+	unsigned idx;
+	for( idx=0; idx < num; idx++ )
+	{
+		if( objects[idx] )
+		{
+			Spong_UpdatePosition( objects[idx] );
+			if( SDL_BlitSurface( objects[idx]->surface, NULL, screen, &objects[idx]->position ) != 0 )
+			{
+				return -1;
+			}
+		}
+	}
+	return 0;
+}
+
 Uint32 Spong_PushRenderEvent( Uint32 interval, void *param )
 {
 		SDL_Event event;
@@ -57,7 +86,7 @@ Uint32 Spong_PushRenderEvent( Uint32 interval, void *param )
 
 void Spong_Init()
 {
-	/* TODO: decide if I need to use timer ID */
+	/* TODO: decide if I need to use this timer ID */
 	SDL_TimerID timerId;
 	SDL_Surface *screen = NULL;
 
@@ -76,15 +105,17 @@ void Spong_Init()
 	}
 
 	/* set the video mode. prefer 8-bit, but accept others */
-	if( !(screen = SDL_SetVideoMode( 640, 480, 8, SDL_HWSURFACE | SDL_DOUBLEBUF | SDL_ANYFORMAT )))
+	if( !(screen = SDL_SetVideoMode( SCREEN_WIDTH,
+	                                 SCREEN_HEIGHT,
+	                                 SCREEN_DEPTH,
+	                                 SDL_HWSURFACE | SDL_DOUBLEBUF | SDL_ANYFORMAT )))
 	{
-		fprintf(stderr,"Unable to set 640x480x8 video mode: %s\n", SDL_GetError());
+		fprintf(stderr,"Unable to set video mode: %s\n", SDL_GetError());
 		exit(1);
 	}
-	printf("Set 640x480 at %d bits-per-pixel mode\n", screen->format->BitsPerPixel);
 
 	/* add timer render event */
-	if( !(timerId = SDL_AddTimer( 1000 / SPONG_FRAME_RATE , Spong_PushRenderEvent , NULL )) )
+	if( !(timerId = SDL_AddTimer( 1000 / SPONG_REFRESH_RATE , Spong_PushRenderEvent , NULL )) )
 	{
 		fprintf(stderr,"failure to add timer\n");
 		exit(1);
@@ -102,27 +133,20 @@ void Spong_Run()
 {
 	/* resources */
 	SDL_Surface *screen = NULL;
-	DisplayObject background, paddle;
 	SDL_Event event;
+	DisplayObject background, paddle;
 
 	/* initialize screen */
 	Spong_Init();
 	screen = SDL_GetVideoSurface();
 
-	/* TODO: abstract this out */
+	Spong_InitObject( &background, 0, 0, 0 );
 	background.surface = SDL_CreateRGBSurface(screen->flags,screen->w,screen->h,screen->format->BitsPerPixel,0,0,0,0);
 	SDL_FillRect( background.surface, NULL, SDL_MapRGB( screen->format, 0, 0, 0 ) );
-	background.reftime = SDL_GetTicks();
-	background.motion=0;
-	background.position.x = 0;
-	background.position.y = 0;
 
-	paddle.surface = SDL_CreateRGBSurface(screen->flags,20,SCREEN_HEIGHT/6,screen->format->BitsPerPixel,0,0,0,0);
+	Spong_InitObject( &paddle, 20, 20, 0 );
+	paddle.surface = SDL_CreateRGBSurface(screen->flags,PADDLE_WIDTH,SCREEN_HEIGHT/6,screen->format->BitsPerPixel,0,0,0,0);
 	SDL_FillRect( paddle.surface, NULL, SDL_MapRGB( screen->format, 255, 255, 255 ) );
-	paddle.reftime = SDL_GetTicks();
-	paddle.motion = 0;
-	paddle.position.x = 20;
-	paddle.position.y = 20;
 
 	/* event loop */
 	while( SDL_WaitEvent( &event ) )
@@ -159,7 +183,7 @@ void Spong_Run()
 				{
 					case SPONG_RENDER_EVENT:
 						Spong_UpdatePosition( &paddle );
-						SDL_BlitSurface( background.surface, NULL, screen, NULL);
+						SDL_BlitSurface( background.surface, NULL, screen, &background.position );
 						assert( paddle.surface );
 						assert( paddle.surface->w && paddle.surface->h );
 						SDL_BlitSurface( paddle.surface, NULL, screen, &paddle.position );

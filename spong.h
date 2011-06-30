@@ -1,12 +1,15 @@
 #ifndef _SPONG_H_
 #define _SPONG_H
 
-#ifndef SPONG_FRAME_RATE
-#define SPONG_FRAME_RATE 60
+/* TODO: These macros should eventually become arguments to Spong_Run */
+#define SCREEN_WIDTH 640
+#define SCREEN_HEIGHT 480
+#define SCREEN_DEPTH 32
+
+#ifndef SPONG_REFRESH_RATE
+#define SPONG_REFRESH_RATE 60
 #endif 
 
-/* CUSTOM SPONG EVENTS */
-#define SPONG_RENDER_EVENT 1
 
 void Spong_Run( /* args */ );
 
