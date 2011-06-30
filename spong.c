@@ -2,6 +2,43 @@
 #include <stdlib.h>
 #include <SDL.h>
 #include "spong.h"
+#include <assert.h>
+
+#define SCREEN_HEIGHT 480
+
+typedef struct
+{
+	SDL_Surface* surface;
+	SDL_Rect position;
+	int motion;
+	Uint32 reftime;
+} DisplayObject;
+
+void Spong_UpdatePosition( DisplayObject* obj )
+{
+	Uint32 curtime = SDL_GetTicks();
+	assert( obj );
+	switch(obj->motion)
+	{
+		case 1:
+			obj->position.y -= ( curtime - obj->reftime );
+			if( obj->position.y < 0 )
+			{
+				obj->position.y = 0;
+			}
+			break;
+		case -1:
+			obj->position.y += ( curtime - obj->reftime );
+			if( obj->position.y + obj->surface->h > SCREEN_HEIGHT )
+			{
+				obj->position.y = SCREEN_HEIGHT - obj->surface->h;
+			}
+			break;
+		default:
+			break;
+	}
+	obj->reftime = curtime;
+}
 
 Uint32 Spong_PushRenderEvent( Uint32 interval, void *param )
 {
@@ -18,9 +55,11 @@ Uint32 Spong_PushRenderEvent( Uint32 interval, void *param )
 		return interval;
 }
 
-void Spong_Init( SDL_Surface* screen, SDL_Surface* paddle )
+void Spong_Init()
 {
+	/* TODO: decide if I need to use timer ID */
 	SDL_TimerID timerId;
+	SDL_Surface *screen = NULL;
 
 	/* initialize required SDL subsystems (TODO: replace 'EVERYTHING' with the specific modules) */
 	/* modules: SDL_INIT_TIMER, ... */
@@ -37,7 +76,7 @@ void Spong_Init( SDL_Surface* screen, SDL_Surface* paddle )
 	}
 
 	/* set the video mode. prefer 8-bit, but accept others */
-	if(!(screen = SDL_SetVideoMode( 640, 480, 8, SDL_HWSURFACE | SDL_DOUBLEBUF | SDL_ANYFORMAT )))
+	if( !(screen = SDL_SetVideoMode( 640, 480, 8, SDL_HWSURFACE | SDL_DOUBLEBUF | SDL_ANYFORMAT )))
 	{
 		fprintf(stderr,"Unable to set 640x480x8 video mode: %s\n", SDL_GetError());
 		exit(1);
@@ -45,7 +84,14 @@ void Spong_Init( SDL_Surface* screen, SDL_Surface* paddle )
 	printf("Set 640x480 at %d bits-per-pixel mode\n", screen->format->BitsPerPixel);
 
 	/* add timer render event */
-	timerId = SDL_AddTimer( 1000 / SPONG_FRAME_RATE , Spong_PushRenderEvent , NULL );
+	if( !(timerId = SDL_AddTimer( 1000 / SPONG_FRAME_RATE , Spong_PushRenderEvent , NULL )) )
+	{
+		fprintf(stderr,"failure to add timer\n");
+		exit(1);
+	}
+
+	/* set the window caption */
+	SDL_WM_SetCaption( "Spong", NULL );
 }
 
 /* not used */
@@ -55,12 +101,28 @@ void Spong_CleanUp() {}
 void Spong_Run()
 {
 	/* resources */
-	SDL_Surface screen, paddle;
+	SDL_Surface *screen = NULL;
+	DisplayObject background, paddle;
 	SDL_Event event;
-	int motion=0;
 
-	/* initialize resources */
-	Spong_Init( &screen, &paddle );
+	/* initialize screen */
+	Spong_Init();
+	screen = SDL_GetVideoSurface();
+
+	/* TODO: abstract this out */
+	background.surface = SDL_CreateRGBSurface(screen->flags,screen->format->BitsPerPixel,screen->h,screen->w,0,0,0,0);
+	SDL_FillRect( background.surface, NULL, SDL_MapRGB( screen->format, 0, 0, 255 ) );
+	background.reftime = SDL_GetTicks();
+	background.motion=0;
+	background.position.x = 0;
+	background.position.y = 0;
+
+	paddle.surface = SDL_CreateRGBSurface(screen->flags,screen->format->BitsPerPixel,SCREEN_HEIGHT/5,20,0,0,0,0);
+	SDL_FillRect( paddle.surface, NULL, SDL_MapRGB( screen->format, 255, 255, 255 ) );
+	paddle.reftime = SDL_GetTicks();
+	paddle.motion = 0;
+	paddle.position.x = 20;
+	paddle.position.y = 20;
 
 	/* event loop */
 	while( SDL_WaitEvent( &event ) )
@@ -71,29 +133,43 @@ void Spong_Run()
 				fprintf(stderr,"SDL_KEYDOWN event\n");
 				if( event.key.keysym.sym == SDLK_UP )
 				{
-					motion += 1;
+					Spong_UpdatePosition( &paddle );
+					paddle.motion += 1;
 				}
 				if( event.key.keysym.sym == SDLK_DOWN )
 				{
-					motion -= 1;
+					Spong_UpdatePosition( &paddle );
+					paddle.motion -= 1;
 				}
 				break;
 			case SDL_KEYUP:
 				if( event.key.keysym.sym == SDLK_UP )
 				{
-					motion -= 1;
+					Spong_UpdatePosition( &paddle );
+					paddle.motion -= 1;
 				}
 				if( event.key.keysym.sym == SDLK_DOWN )
 				{
-					motion += 1;
+					Spong_UpdatePosition( &paddle );
+					paddle.motion += 1;
 				}
 				break;
 			case SDL_USEREVENT:
 				switch( event.user.code )
 				{
 					case SPONG_RENDER_EVENT:
-						SDL_Flip( &screen );
-						fprintf(stderr,"%d\n",motion);
+						Spong_UpdatePosition( &paddle );
+						SDL_BlitSurface( background.surface, NULL, screen, NULL);
+						assert( paddle.surface );
+						assert( paddle.surface->w && paddle.surface->h );
+						SDL_FillRect( screen , NULL, SDL_MapRGB( screen->format, 0, 0, 0 ) );
+						SDL_BlitSurface( paddle.surface, NULL, screen, &paddle.position );
+						if( SDL_Flip( screen ) != 0 )
+						{
+							fprintf(stderr,"FLIP ERROR\n");
+							exit(1);
+						}
+						fprintf(stderr,"%d %d %d\n",paddle.motion, paddle.position.y, paddle.reftime/1000);
 						break;
 					default:
 						fprintf(stderr,"unrecognized user event\n");
