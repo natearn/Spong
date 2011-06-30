@@ -1,0 +1,12 @@
+
+The paddle and background surfaces are not behaving as expected, need to find the problem with how they are being declared/modified/blitted
+
+move the initialization code for display objects into a function
+
+create a function which iterates over an array of display objects and update/blits them
+
+make another paddle
+
+make a ball
+
+add collision detection
