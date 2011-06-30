@@ -110,14 +110,14 @@ void Spong_Run()
 	screen = SDL_GetVideoSurface();
 
 	/* TODO: abstract this out */
-	background.surface = SDL_CreateRGBSurface(screen->flags,screen->format->BitsPerPixel,screen->h,screen->w,0,0,0,0);
-	SDL_FillRect( background.surface, NULL, SDL_MapRGB( screen->format, 0, 0, 255 ) );
+	background.surface = SDL_CreateRGBSurface(screen->flags,screen->w,screen->h,screen->format->BitsPerPixel,0,0,0,0);
+	SDL_FillRect( background.surface, NULL, SDL_MapRGB( screen->format, 0, 0, 0 ) );
 	background.reftime = SDL_GetTicks();
 	background.motion=0;
 	background.position.x = 0;
 	background.position.y = 0;
 
-	paddle.surface = SDL_CreateRGBSurface(screen->flags,screen->format->BitsPerPixel,SCREEN_HEIGHT/5,20,0,0,0,0);
+	paddle.surface = SDL_CreateRGBSurface(screen->flags,20,SCREEN_HEIGHT/6,screen->format->BitsPerPixel,0,0,0,0);
 	SDL_FillRect( paddle.surface, NULL, SDL_MapRGB( screen->format, 255, 255, 255 ) );
 	paddle.reftime = SDL_GetTicks();
 	paddle.motion = 0;
@@ -162,7 +162,6 @@ void Spong_Run()
 						SDL_BlitSurface( background.surface, NULL, screen, NULL);
 						assert( paddle.surface );
 						assert( paddle.surface->w && paddle.surface->h );
-						SDL_FillRect( screen , NULL, SDL_MapRGB( screen->format, 0, 0, 0 ) );
 						SDL_BlitSurface( paddle.surface, NULL, screen, &paddle.position );
 						if( SDL_Flip( screen ) != 0 )
 						{
