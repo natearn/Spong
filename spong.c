@@ -134,7 +134,7 @@ void Spong_Run()
 	/* resources */
 	SDL_Surface *screen = NULL;
 	SDL_Event event;
-	DisplayObject background, paddle;
+	DisplayObject background, paddle, paddle2;
 
 	/* initialize screen */
 	Spong_Init();
@@ -147,6 +147,10 @@ void Spong_Run()
 	Spong_InitObject( &paddle, 20, 20, 0 );
 	paddle.surface = SDL_CreateRGBSurface(screen->flags,PADDLE_WIDTH,SCREEN_HEIGHT/6,screen->format->BitsPerPixel,0,0,0,0);
 	SDL_FillRect( paddle.surface, NULL, SDL_MapRGB( screen->format, 255, 255, 255 ) );
+
+	Spong_InitObject( &paddle2, SCREEN_WIDTH-20-PADDLE_WIDTH, 20, 0 );
+	paddle2.surface = SDL_CreateRGBSurface(screen->flags,PADDLE_WIDTH,SCREEN_HEIGHT/6,screen->format->BitsPerPixel,0,0,0,0);
+	SDL_FillRect( paddle2.surface, NULL, SDL_MapRGB( screen->format, 255, 255, 255 ) );
 
 	/* event loop */
 	while( SDL_WaitEvent( &event ) )
@@ -165,6 +169,16 @@ void Spong_Run()
 					Spong_UpdatePosition( &paddle );
 					paddle.motion -= 1;
 				}
+				if( event.key.keysym.sym == SDLK_w )
+				{
+					Spong_UpdatePosition( &paddle2 );
+					paddle2.motion += 1;
+				}
+				if( event.key.keysym.sym == SDLK_s )
+				{
+					Spong_UpdatePosition( &paddle2 );
+					paddle2.motion -= 1;
+				}
 				break;
 			case SDL_KEYUP:
 				if( event.key.keysym.sym == SDLK_UP )
@@ -177,16 +191,28 @@ void Spong_Run()
 					Spong_UpdatePosition( &paddle );
 					paddle.motion += 1;
 				}
+				if( event.key.keysym.sym == SDLK_w )
+				{
+					Spong_UpdatePosition( &paddle2 );
+					paddle2.motion -= 1;
+				}
+				if( event.key.keysym.sym == SDLK_s )
+				{
+					Spong_UpdatePosition( &paddle2 );
+					paddle2.motion += 1;
+				}
 				break;
 			case SDL_USEREVENT:
 				switch( event.user.code )
 				{
 					case SPONG_RENDER_EVENT:
 						Spong_UpdatePosition( &paddle );
+						Spong_UpdatePosition( &paddle2 );
 						SDL_BlitSurface( background.surface, NULL, screen, &background.position );
 						assert( paddle.surface );
 						assert( paddle.surface->w && paddle.surface->h );
 						SDL_BlitSurface( paddle.surface, NULL, screen, &paddle.position );
+						SDL_BlitSurface( paddle2.surface, NULL, screen, &paddle2.position );
 						if( SDL_Flip( screen ) != 0 )
 						{
 							fprintf(stderr,"FLIP ERROR\n");
