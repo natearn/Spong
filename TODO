@@ -1,8 +1,13 @@
 
-make a ball
-
 add collision detection
+
+change SIZES and SPEEDS to be relative to the screen resolution
+
+add a scoring condition
+
+display score
 
 add arguments to Spong_Run(), convert the appropriate macros to parameters
 
 determine if display object surfaces should be initialized with the rest of the struct, or set later
+

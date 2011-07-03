@@ -2,8 +2,8 @@
 #define _SPONG_H
 
 /* TODO: These macros should eventually become arguments to Spong_Run */
-#define SCREEN_WIDTH 640
-#define SCREEN_HEIGHT 480
+#define SCREEN_WIDTH 1024
+#define SCREEN_HEIGHT 768
 #define SCREEN_DEPTH 32
 
 #ifndef SPONG_REFRESH_RATE
