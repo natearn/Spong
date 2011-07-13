@@ -10,6 +10,13 @@
 #define BALL_HEIGHT 20
 #define	BALL_WIDTH 20
 
+#define SCREEN_WIDTH 640
+#define SCREEN_HEIGHT 480
+#define SCREEN_DEPTH 32
+
+#ifndef SPONG_REFRESH_RATE
+#define SPONG_REFRESH_RATE 60
+#endif 
 
 typedef struct
 {
@@ -30,16 +37,30 @@ void Spong_InitObject( DisplayObject* obj, int x, int y, int mx, int my )
 	obj->reftime = SDL_GetTicks();
 }
 
+/* use the bounding box method of detecting collisions */
+int Spong_Collision( DisplayObject* object1, DisplayObject* object2 )
+{
+	if( object1->position.x > object2->position.x + object2->surface->w - 1 ) return 0;
+	if( object1->position.y > object2->position.y + object2->surface->h - 1 ) return 0;
+	if( object1->position.x + object1->surface->w - 1 < object2->position.x ) return 0;
+	if( object1->position.y + object1->surface->h - 1 < object2->position.y ) return 0;
+	return 1;
+}
+
 void Spong_UpdatePosition( DisplayObject* obj )
 {
 	Uint32 curtime = SDL_GetTicks();
 	assert( obj );
 	obj->position.y += obj->motion_y * (int)( curtime - obj->reftime ) / 10;
+#if 1
 	if( obj->position.y < 0 ) obj->position.y = 0;
 	if( obj->position.y > SCREEN_HEIGHT - obj->surface->h ) obj->position.y = SCREEN_HEIGHT - obj->surface->h;
+#endif
 	obj->position.x += obj->motion_x * (int)( curtime - obj->reftime ) / 10;
+#if 1
 	if( obj->position.x < 0 ) obj->position.x = 0;
 	if( obj->position.x > SCREEN_WIDTH - obj->surface->w ) obj->position.x = SCREEN_WIDTH - obj->surface->w;
+#endif
 	obj->reftime = curtime;
 }
 
@@ -105,7 +126,7 @@ void Spong_Init()
 	if( !(screen = SDL_SetVideoMode( SCREEN_WIDTH,
 	                                 SCREEN_HEIGHT,
 	                                 SCREEN_DEPTH,
-	                                 SDL_HWSURFACE | SDL_DOUBLEBUF | SDL_ANYFORMAT )))
+	                                 SDL_HWSURFACE | SDL_DOUBLEBUF )))
 	{
 		fprintf(stderr,"Unable to set video mode: %s\n", SDL_GetError());
 		exit(1);
@@ -210,6 +231,11 @@ void Spong_Run()
 						Spong_UpdatePosition( &paddle );
 						Spong_UpdatePosition( &paddle2 );
 						Spong_UpdatePosition( &ball );
+						if( Spong_Collision( &ball, &paddle ) )
+						{
+							fprintf(stderr,"BALL COLLIDED WITH PADDLE 1\n");
+							ball.motion_x *= -1;
+						}
 						Spong_Bounce( &ball );
 						SDL_BlitSurface( background.surface, NULL, screen, &background.position );
 						assert( paddle.surface );

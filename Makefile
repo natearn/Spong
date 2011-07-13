@@ -10,6 +10,5 @@ spong: spong.o main.o
 tags: spong.h spong.c main.c
 	ctags $^
 
-
 clean:
 	$(RM) spong *.o tags
