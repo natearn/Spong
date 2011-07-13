@@ -1,7 +1,11 @@
 
-add collision detection
+add position recovery for collisions
+
+improve collision detection to handle screen borders
 
 change SIZES and SPEEDS to be relative to the screen resolution
+
+make window resizable 
 
 add a scoring condition
 
@@ -9,5 +13,6 @@ display score
 
 add arguments to Spong_Run(), convert the appropriate macros to parameters
 
-determine if display object surfaces should be initialized with the rest of the struct, or set later
+improve object initialization
 
+add support for an arbitrary number of objects (multiple balls)

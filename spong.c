@@ -6,6 +6,9 @@
 
 #define SPONG_RENDER_EVENT 1
 
+#define PADDLE_SPEED 1000
+
+
 #define PADDLE_WIDTH 20
 #define BALL_HEIGHT 20
 #define	BALL_WIDTH 20
@@ -51,13 +54,13 @@ void Spong_UpdatePosition( DisplayObject* obj )
 {
 	Uint32 curtime = SDL_GetTicks();
 	assert( obj );
-	obj->position.y += obj->motion_y * (int)( curtime - obj->reftime ) / 10;
-#if 1
-	if( obj->position.y < 0 ) obj->position.y = 0;
+	obj->position.y += obj->motion_y * (int)( curtime - obj->reftime ) / 1000;
+#if 0
+	if( obj->position.y < 0 )
 	if( obj->position.y > SCREEN_HEIGHT - obj->surface->h ) obj->position.y = SCREEN_HEIGHT - obj->surface->h;
 #endif
-	obj->position.x += obj->motion_x * (int)( curtime - obj->reftime ) / 10;
-#if 1
+	obj->position.x += obj->motion_x * (int)( curtime - obj->reftime ) / 1000;
+#if 0
 	if( obj->position.x < 0 ) obj->position.x = 0;
 	if( obj->position.x > SCREEN_WIDTH - obj->surface->w ) obj->position.x = SCREEN_WIDTH - obj->surface->w;
 #endif
@@ -66,25 +69,33 @@ void Spong_UpdatePosition( DisplayObject* obj )
 
 void Spong_Bounce( DisplayObject* ball )
 {
-	if( ball->position.y <= 0 || ball->position.y >= SCREEN_HEIGHT - ball->surface->h ) ball->motion_y *= -1;
-	if( ball->position.x <= 0 || ball->position.x >= SCREEN_WIDTH - ball->surface->w ) ball->motion_x *= -1;
-}
-
-int Spong_DrawObjects( DisplayObject* objects[], unsigned num, SDL_Surface* screen )
-{
-	unsigned idx;
-	for( idx=0; idx < num; idx++ )
+	int fix;
+	if( ball->position.y <= 0 )
 	{
-		if( objects[idx] )
-		{
-			Spong_UpdatePosition( objects[idx] );
-			if( SDL_BlitSurface( objects[idx]->surface, NULL, screen, &objects[idx]->position ) != 0 )
-			{
-				return -1;
-			}
-		}
+		fix = 0 - ball->position.y;
+		ball->motion_y *= -1;
+		ball->position.y = 0 + fix;
+		
 	}
-	return 0;
+	else if( ball->position.y >= SCREEN_HEIGHT - ball->surface->h )
+	{
+		fix = SCREEN_HEIGHT - ball->surface->h - ball->position.y;
+		ball->motion_y *= -1;
+		ball->position.y = SCREEN_HEIGHT - ball->surface->h + fix;
+	}
+	if( ball->position.x <= 0 )
+	{
+		fix = 0 - ball->position.x;
+		ball->motion_x *= -1;
+		ball->position.x = 0 + fix;
+		
+	}
+	else if( ball->position.x >= SCREEN_WIDTH - ball->surface->w )
+	{
+		fix = SCREEN_WIDTH - ball->surface->w - ball->position.x;
+		ball->motion_x *= -1;
+		ball->position.x = SCREEN_WIDTH - ball->surface->w + fix;
+	}
 }
 
 Uint32 Spong_PushRenderEvent( Uint32 interval, void *param )
@@ -170,7 +181,7 @@ void Spong_Run()
 	paddle2.surface = SDL_CreateRGBSurface(screen->flags,PADDLE_WIDTH,SCREEN_HEIGHT/6,screen->format->BitsPerPixel,0,0,0,0);
 	SDL_FillRect( paddle2.surface, NULL, SDL_MapRGB( screen->format, 255, 255, 255 ) );
 
-	Spong_InitObject( &ball, (SCREEN_WIDTH/2)-BALL_WIDTH, (SCREEN_HEIGHT/2)-BALL_HEIGHT, 3, 7 );
+	Spong_InitObject( &ball, (SCREEN_WIDTH/2)-BALL_WIDTH, (SCREEN_HEIGHT/2)-BALL_HEIGHT, 500, 400 );
 	ball.surface = SDL_CreateRGBSurface(screen->flags,BALL_WIDTH,BALL_HEIGHT,screen->format->BitsPerPixel,0,0,0,0);
 	SDL_FillRect( ball.surface, NULL, SDL_MapRGB( screen->format, 255, 255, 255 ) );
 
@@ -184,44 +195,44 @@ void Spong_Run()
 				if( event.key.keysym.sym == SDLK_UP )
 				{
 					Spong_UpdatePosition( &paddle );
-					paddle.motion_y -= 10;
+					paddle.motion_y -= PADDLE_SPEED;
 				}
 				if( event.key.keysym.sym == SDLK_DOWN )
 				{
 					Spong_UpdatePosition( &paddle );
-					paddle.motion_y += 10;
+					paddle.motion_y += PADDLE_SPEED;
 				}
 				if( event.key.keysym.sym == SDLK_w )
 				{
 					Spong_UpdatePosition( &paddle2 );
-					paddle2.motion_y -= 10;
+					paddle2.motion_y -= PADDLE_SPEED;
 				}
 				if( event.key.keysym.sym == SDLK_s )
 				{
 					Spong_UpdatePosition( &paddle2 );
-					paddle2.motion_y += 10;
+					paddle2.motion_y += PADDLE_SPEED;
 				}
 				break;
 			case SDL_KEYUP:
 				if( event.key.keysym.sym == SDLK_UP )
 				{
 					Spong_UpdatePosition( &paddle );
-					paddle.motion_y += 10;
+					paddle.motion_y += PADDLE_SPEED;
 				}
 				if( event.key.keysym.sym == SDLK_DOWN )
 				{
 					Spong_UpdatePosition( &paddle );
-					paddle.motion_y -= 10;
+					paddle.motion_y -= PADDLE_SPEED;
 				}
 				if( event.key.keysym.sym == SDLK_w )
 				{
 					Spong_UpdatePosition( &paddle2 );
-					paddle2.motion_y += 10;
+					paddle2.motion_y += PADDLE_SPEED;
 				}
 				if( event.key.keysym.sym == SDLK_s )
 				{
 					Spong_UpdatePosition( &paddle2 );
-					paddle2.motion_y -= 10;
+					paddle2.motion_y -= PADDLE_SPEED;
 				}
 				break;
 			case SDL_USEREVENT:
@@ -231,12 +242,12 @@ void Spong_Run()
 						Spong_UpdatePosition( &paddle );
 						Spong_UpdatePosition( &paddle2 );
 						Spong_UpdatePosition( &ball );
+						Spong_Bounce( &ball );
 						if( Spong_Collision( &ball, &paddle ) )
 						{
 							fprintf(stderr,"BALL COLLIDED WITH PADDLE 1\n");
 							ball.motion_x *= -1;
 						}
-						Spong_Bounce( &ball );
 						SDL_BlitSurface( background.surface, NULL, screen, &background.position );
 						assert( paddle.surface );
 						assert( paddle.surface->w && paddle.surface->h );
