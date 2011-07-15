@@ -18,7 +18,7 @@
 #define SCREEN_DEPTH 32
 
 #ifndef SPONG_REFRESH_RATE
-#define SPONG_REFRESH_RATE 60
+#define SPONG_REFRESH_RATE 30
 #endif 
 
 typedef struct
@@ -157,6 +157,22 @@ void Spong_Init()
 /* not used */
 void Spong_CleanUp() {}
 
+void Spong_BallCollision( DisplayObject* ball, DisplayObject* object )
+{
+	unsigned iterations;
+	for(iterations=0; Spong_Collision( ball, object ); iterations++)
+	{
+		ball->position.x -= ball->motion_x * 0.01;
+		ball->position.y -= ball->motion_y * 0.01;
+	}
+	if( iterations )
+	{
+		/* apply ball motion alteration */
+		ball->motion_x *= -1;
+	}
+	/* reapply iterations */
+}
+
 /* this will drive the Spong program */
 void Spong_Run()
 {
@@ -242,12 +258,16 @@ void Spong_Run()
 						Spong_UpdatePosition( &paddle );
 						Spong_UpdatePosition( &paddle2 );
 						Spong_UpdatePosition( &ball );
-						Spong_Bounce( &ball );
 						if( Spong_Collision( &ball, &paddle ) )
 						{
 							fprintf(stderr,"BALL COLLIDED WITH PADDLE 1\n");
-							ball.motion_x *= -1;
+							Spong_BallCollision( &ball, &paddle );
+						} else if( Spong_Collision( &ball, &paddle2 ) )
+						{
+							fprintf(stderr,"BALL COLLIDED WITH PADDLE 2\n");
+							Spong_BallCollision( &ball, &paddle2 );
 						}
+						Spong_Bounce( &ball );
 						SDL_BlitSurface( background.surface, NULL, screen, &background.position );
 						assert( paddle.surface );
 						assert( paddle.surface->w && paddle.surface->h );
@@ -271,3 +291,4 @@ void Spong_Run()
 		}
 	}
 }
+
