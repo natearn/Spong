@@ -1,7 +1,5 @@
 
-Fix ball correction for right paddle
-
-add position recovery for collisions
+fix bug where paddle can't have position < 0
 
 improve collision detection to handle screen borders
 
