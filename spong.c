@@ -97,11 +97,6 @@ void Spong_Bounce( DisplayObject* ball )
 		Spong_Score( 2 );
 		Spong_InitObject( ball, (SCREEN_WIDTH/2)-BALL_WIDTH, (SCREEN_HEIGHT/2)-BALL_HEIGHT, 500, 400 );
 		fprintf(stderr,"successfully reset ball\n");
-#if 0
-		fix = 0 - ball->position.x;
-		ball->motion_x *= -1;
-		ball->position.x = 0 + fix;
-#endif
 		
 	}
 	else if( ball->position.x >= SCREEN_WIDTH - ball->surface->w )
@@ -109,11 +104,6 @@ void Spong_Bounce( DisplayObject* ball )
 		Spong_Score( 1 );
 		Spong_InitObject( ball, (SCREEN_WIDTH/2)-BALL_WIDTH, (SCREEN_HEIGHT/2)-BALL_HEIGHT, 500, 400 );
 		fprintf(stderr,"successfully reset ball\n");
-#if 0
-		fix = SCREEN_WIDTH - ball->surface->w - ball->position.x;
-		ball->motion_x *= -1;
-		ball->position.x = SCREEN_WIDTH - ball->surface->w + fix;
-#endif
 	}
 }
 
@@ -279,19 +269,19 @@ void Spong_Run()
 				switch( event.user.code )
 				{
 					case SPONG_RENDER_EVENT:
+						/* OBJECT UPDATING */
 						Spong_UpdatePosition( &paddle );
 						Spong_UpdatePosition( &paddle2 );
 						Spong_UpdatePosition( &ball );
 						Spong_BallCollision( &ball, &paddle );
 						Spong_BallCollision( &ball, &paddle2 );
 						Spong_Bounce( &ball );
-					fprintf(stderr,"no bug up to blitsurface background\n");
+						/* OBJECT DRAWING */
 						SDL_BlitSurface( background.surface, NULL, screen, &background.position );
 						assert( paddle.surface );
 						assert( paddle.surface->w && paddle.surface->h );
 						SDL_BlitSurface( paddle.surface, NULL, screen, &paddle.position );
 						SDL_BlitSurface( paddle2.surface, NULL, screen, &paddle2.position );
-					fprintf(stderr,"no bug up to other blitsurface ball\n");
 						assert( ball.surface );
 						assert( ball.surface->w && ball.surface->h );
 						SDL_BlitSurface( ball.surface, NULL, screen, &ball.position );
