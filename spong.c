@@ -32,7 +32,6 @@ typedef struct
 
 void Spong_InitObject( DisplayObject* obj, int x, int y, int mx, int my )
 {
-	obj->surface = NULL;
 	obj->position.y = y;
 	obj->position.x = x;
 	obj->motion_x = mx;
@@ -55,16 +54,26 @@ void Spong_UpdatePosition( DisplayObject* obj )
 	Uint32 curtime = SDL_GetTicks();
 	assert( obj );
 	obj->position.y += obj->motion_y * (int)( curtime - obj->reftime ) / 1000;
-#if 0
-	if( obj->position.y < 0 )
-	if( obj->position.y > SCREEN_HEIGHT - obj->surface->h ) obj->position.y = SCREEN_HEIGHT - obj->surface->h;
-#endif
 	obj->position.x += obj->motion_x * (int)( curtime - obj->reftime ) / 1000;
-#if 0
-	if( obj->position.x < 0 ) obj->position.x = 0;
-	if( obj->position.x > SCREEN_WIDTH - obj->surface->w ) obj->position.x = SCREEN_WIDTH - obj->surface->w;
-#endif
 	obj->reftime = curtime;
+}
+
+void Spong_Score(int player)
+{
+	static int player1=0;
+	static int player2=0;
+	switch(player)
+	{
+		case 1:
+			player1++;
+			break;
+		case 2:
+			player2++;
+			break;
+		default:
+			break;
+	}
+	fprintf(stderr,"Score: %d to %d\n", player1, player2 );
 }
 
 void Spong_Bounce( DisplayObject* ball )
@@ -85,16 +94,26 @@ void Spong_Bounce( DisplayObject* ball )
 	}
 	if( ball->position.x <= 0 )
 	{
+		Spong_Score( 2 );
+		Spong_InitObject( ball, (SCREEN_WIDTH/2)-BALL_WIDTH, (SCREEN_HEIGHT/2)-BALL_HEIGHT, 500, 400 );
+		fprintf(stderr,"successfully reset ball\n");
+#if 0
 		fix = 0 - ball->position.x;
 		ball->motion_x *= -1;
 		ball->position.x = 0 + fix;
+#endif
 		
 	}
 	else if( ball->position.x >= SCREEN_WIDTH - ball->surface->w )
 	{
+		Spong_Score( 1 );
+		Spong_InitObject( ball, (SCREEN_WIDTH/2)-BALL_WIDTH, (SCREEN_HEIGHT/2)-BALL_HEIGHT, 500, 400 );
+		fprintf(stderr,"successfully reset ball\n");
+#if 0
 		fix = SCREEN_WIDTH - ball->surface->w - ball->position.x;
 		ball->motion_x *= -1;
 		ball->position.x = SCREEN_WIDTH - ball->surface->w + fix;
+#endif
 	}
 }
 
@@ -172,8 +191,8 @@ void Spong_BallCollision( DisplayObject* ball, DisplayObject* object )
 	}
 	for(; iterations > 0; iterations--)
 	{
-		ball->position.x += ball->motion_x * 0.01;
-		ball->position.y += ball->motion_y * 0.01;
+		ball->position.x += ball->motion_x * 0.001;
+		ball->position.y += ball->motion_y * 0.001;
 	}
 	/* reapply iterations */
 }
@@ -266,18 +285,21 @@ void Spong_Run()
 						Spong_BallCollision( &ball, &paddle );
 						Spong_BallCollision( &ball, &paddle2 );
 						Spong_Bounce( &ball );
+					fprintf(stderr,"no bug up to blitsurface background\n");
 						SDL_BlitSurface( background.surface, NULL, screen, &background.position );
 						assert( paddle.surface );
 						assert( paddle.surface->w && paddle.surface->h );
 						SDL_BlitSurface( paddle.surface, NULL, screen, &paddle.position );
 						SDL_BlitSurface( paddle2.surface, NULL, screen, &paddle2.position );
+					fprintf(stderr,"no bug up to other blitsurface ball\n");
+						assert( ball.surface );
+						assert( ball.surface->w && ball.surface->h );
 						SDL_BlitSurface( ball.surface, NULL, screen, &ball.position );
 						if( SDL_Flip( screen ) != 0 )
 						{
 							fprintf(stderr,"FLIP ERROR\n");
 							exit(1);
 						}
-						fprintf(stderr,"%d %d %d\n",paddle.motion_y, paddle.position.y, paddle.reftime/1000);
 						break;
 					default:
 						fprintf(stderr,"unrecognized user event\n");

@@ -1,18 +1,10 @@
+TODO (in no particular order):
 
-fix bug where paddle can't have position < 0
-
-improve collision detection to handle screen borders
-
-change SIZES and SPEEDS to be relative to the screen resolution
-
-make window resizable 
-
-add a scoring condition
-
-display score
-
-add arguments to Spong_Run(), convert the appropriate macros to parameters
-
-improve object initialization
-
-add support for an arbitrary number of objects (multiple balls)
+	* fix bug where paddle can't have position < 0
+	* change SIZES and SPEEDS to be relative to the screen resolution
+	* make window resizable 
+	* display score
+	* add arguments to Spong_Run(), convert the appropriate macros to parameters
+	* improve object initialization
+	* improve collision detection to handle screen borders
+	* add support for an arbitrary number of objects (multiple balls)
