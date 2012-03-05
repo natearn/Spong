@@ -1,1 +1,1 @@
-This project is intended to help me learn SDL. I am writing this project in C to get a sense of how beneficial object oriented programming is to game development.
+Spong is a clone of pong written in SDL. This project is meant to familiarize myself with github and the SDL library. I am also, against recommendation, determining how difficult it is to write a video game in C.

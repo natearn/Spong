@@ -18,7 +18,7 @@
 #define SCREEN_DEPTH 32
 
 #ifndef SPONG_REFRESH_RATE
-#define SPONG_REFRESH_RATE 30
+#define SPONG_REFRESH_RATE 600
 #endif 
 
 typedef struct
@@ -109,6 +109,7 @@ void Spong_Bounce( DisplayObject* ball )
 
 Uint32 Spong_PushRenderEvent( Uint32 interval, void *param )
 {
+#if 1
 		SDL_Event event;
 		(void)param;
 		event.type = SDL_USEREVENT;
@@ -119,6 +120,7 @@ Uint32 Spong_PushRenderEvent( Uint32 interval, void *param )
 		{
 			fprintf(stderr,"Failure to push redraw event to event queue\n");
 		}
+#endif
 		return interval;
 }
 
@@ -241,6 +243,10 @@ void Spong_Run()
 				{
 					Spong_UpdatePosition( &paddle2 );
 					paddle2.motion_y += PADDLE_SPEED;
+				}
+				if( event.key.keysym.sym == SDLK_q )
+				{
+					exit(0);
 				}
 				break;
 			case SDL_KEYUP:
